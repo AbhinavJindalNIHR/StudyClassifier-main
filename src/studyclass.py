@@ -5,6 +5,7 @@ import neuralnet as nn #functions to form neural network and calculate accuracy 
 import preproc as pr #functions to preprocess data 
 from sklearn.model_selection import train_test_split
 import pandas as pd
+from sklearn import preprocessing #for one-hot encoding
 
 #get data
 #Variable s has SQL script for fetching data from ODBC connection
@@ -21,28 +22,39 @@ pd_df=studyICDMAP[['ICDBlock','StudyLeadAdmin_NIHRDev','StudyLeadAdmin','StudyLe
 #removed - 'StudyObservationalDetail_Concatenated'
 data=pd_df[['ICDBlock','StudyLeadAdmin_NIHRDev','StudyLeadAdmin','StudyLeadAdminOrDivision','StudyLeadAdminComm','StudyManagingRDO','StudyManagingSpecialty','StudyLeadLCRN','StudyPriorityPandemic','StudyPortfolioEligibility','StudyGovernanceRoute','StudyManagingSpecialty_PrimarySubSpecialty','StudyRandomisationStatus','StudyDesignType','StudyIntervention','StudyDesignTypeIntOb','StudyGeographicalScope','StudyCommercialInvolvement','StudySampleSizeUK','StudySampleSizeGlobal','StudySampleSizeNI','StudyManagingRDOShort','StudySampleSizeWales','StudySampleSizeEngland','StudyHasScreeningElement','StudyShouldUploadRecruitmentData','StudyHasMainFunder','StudySponsorType','StudyConsumerInvolvement','StudyConsumerInvolvementDetail','Study_IsUrgentPublicHealthResearch','Study_IsExperimentalMedicineComponent','Study_IsCommercial','Study_IsCTU','StudyCountDraftAndLive','Study_IsPostApril2010','Study_IsInPublicSearch','Study_IsHRCSICDReviewed','StudyComplexityCategory','StudyCommercialOrCollaborative','StudyCommercialStudy','StudyCount','StudyResearchCategory','StudyCommercialStudyType','StudyFeasibilityStatus','StudyMDSComplete','Study_IsJDRStudy','StudySampleSizeScotland','Study_IsCROStudy','StudyResearchAssessment','StudyComplexityCategoryExtra','StudyPriority','Study_IsNonNHS','StudyComplexityCategoryWeighting','StudyLeadLCRNAcronym','StudyComplexityCategoryLargeOther','StudyUpperAgeLimit','StudyLowerAgeLimit','Study_PandemicStatusConfirmed','Study_IsManagedRecovery','Study_IsCOVID','Study_DoesStudyRecordParticipantAge']]
 
-#one-hot encoding
+#split into X (inputs-features) and y(output variable):
+X = data.drop('ICDBlock', axis=1)
+y=data['ICDBlock']
 
 #split data into categorical and numerical
 #get list of categorical columns: (includes categorical where it is binary -1 & 0)
-ohe_col = data.select_dtypes(include=['object']).columns.tolist()
-all_col = data.columns.tolist() #get list of all columns 
-num_col = all_col #instantiate a list of numerical columns 
+#ohe_col = data.select_dtypes(include=['object']).columns.tolist()
+all_col = X.columns.tolist() #get list of all columns 
+#num_col = all_col #instantiate a list of numerical columns 
+num_col = X._get_numeric_data().columns
+ohe_col = list(set(all_col) - set(num_col)) #getting list of one-hot enoding columns - categorical features
 #loop to get list of remainder columns after excluding ohe columns:
-for a in all_col:
-  if a in ohe_col:
-    num_col.remove(a)
-data_ohe = data.drop(columns = ohe_col,inplace=False) #dataset for one-hot encoding transformation
-data_num = data.drop(columns = num_col,inplace=False) #dataset for with numerical columns 
+# for a in all_col:
+#   if a in ohe_col:
+#     num_col.remove(a)
+X_ohe = X.drop(columns = ohe_col,inplace=False) #dataset for one-hot encoding transformation
+X_num = X.drop(columns = num_col,inplace=False) #dataset for with numerical columns 
 
+#one-hot encoding
+enc = preprocessing.OneHotEncoder(handle_unknown='ignore')
+
+# 2. FIT
+enc.fit(X_ohe)
+
+# 3. Transform
+onehotlabels = enc.transform(X_ohe).toarray()
+onehotlabels.shape
 
 #remove NAs or blanks
 data = data.fillna(0, inplace=True)
 #convert to float
 data = data.astype(float)
-#split & scale data
-X = data.drop('ICDBlock', axis=1)
-y=data['ICDBlock']
+
 # Convert to NumPy as required for k-fold splits
 X_np = X.values
 y_np = y.values
