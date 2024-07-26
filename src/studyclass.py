@@ -21,9 +21,32 @@ pd_df=studyICDMAP[['ICDBlock','StudyLeadAdmin_NIHRDev','StudyLeadAdmin','StudyLe
 #removed - 'StudyObservationalDetail_Concatenated'
 data=pd_df[['ICDBlock','StudyLeadAdmin_NIHRDev','StudyLeadAdmin','StudyLeadAdminOrDivision','StudyLeadAdminComm','StudyManagingRDO','StudyManagingSpecialty','StudyLeadLCRN','StudyPriorityPandemic','StudyPortfolioEligibility','StudyGovernanceRoute','StudyManagingSpecialty_PrimarySubSpecialty','StudyRandomisationStatus','StudyDesignType','StudyIntervention','StudyDesignTypeIntOb','StudyGeographicalScope','StudyCommercialInvolvement','StudySampleSizeUK','StudySampleSizeGlobal','StudySampleSizeNI','StudyManagingRDOShort','StudySampleSizeWales','StudySampleSizeEngland','StudyHasScreeningElement','StudyShouldUploadRecruitmentData','StudyHasMainFunder','StudySponsorType','StudyConsumerInvolvement','StudyConsumerInvolvementDetail','Study_IsUrgentPublicHealthResearch','Study_IsExperimentalMedicineComponent','Study_IsCommercial','Study_IsCTU','StudyCountDraftAndLive','Study_IsPostApril2010','Study_IsInPublicSearch','Study_IsHRCSICDReviewed','StudyComplexityCategory','StudyCommercialOrCollaborative','StudyCommercialStudy','StudyCount','StudyResearchCategory','StudyCommercialStudyType','StudyFeasibilityStatus','StudyMDSComplete','Study_IsJDRStudy','StudySampleSizeScotland','Study_IsCROStudy','StudyResearchAssessment','StudyComplexityCategoryExtra','StudyPriority','Study_IsNonNHS','StudyComplexityCategoryWeighting','StudyLeadLCRNAcronym','StudyComplexityCategoryLargeOther','StudyUpperAgeLimit','StudyLowerAgeLimit','Study_PandemicStatusConfirmed','Study_IsManagedRecovery','Study_IsCOVID','Study_DoesStudyRecordParticipantAge']]
 
+#one-hot encoding
+
+#split data into categorical and numerical
+#get list of categorical columns: (includes categorical where it is binary -1 & 0)
+ohe_col = data.select_dtypes(include=['object']).columns.tolist()
+all_col = data.columns.tolist() #get list of all columns 
+num_col = all_col #instantiate a list of numerical columns 
+#loop to get list of remainder columns after excluding ohe columns:
+for a in all_col:
+  if a in ohe_col:
+    num_col.remove(a)
+data_ohe = data.drop(columns = ohe_col,inplace=False) #dataset for one-hot encoding transformation
+data_num = data.drop(columns = num_col,inplace=False) #dataset for with numerical columns 
+
+
+#remove NAs or blanks
+data = data.fillna(0, inplace=True)
+#convert to float
+data = data.astype(float)
 #split & scale data
 X = data.drop('ICDBlock', axis=1)
 y=data['ICDBlock']
+# Convert to NumPy as required for k-fold splits
+X_np = X.values
+y_np = y.values
+
 # Split data
 X_train, X_test, y_train, y_test = train_test_split(
     X_np, y_np, test_size = 0.25, random_state=42)
@@ -31,10 +54,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 # Scale X data
 X_train_sc, X_test_sc = pr.scale_data(X_train, X_test)
 
-#one-hot encoding
-#remove NAs or blanks
 
-#convert to float
 #load model
 model = nn.make_net(10)
 model.summary() #look at model summary - arbitrarily 
