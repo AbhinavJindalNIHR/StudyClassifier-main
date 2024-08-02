@@ -32,7 +32,7 @@ y=data['ICDBlock']
 all_col = X.columns.tolist() #get list of all columns 
 #num_col = all_col #instantiate a list of numerical columns 
 num_col = X._get_numeric_data().columns
-ohe_col = list(set(all_col) - set(num_col)) #getting list of one-hot enoding columns - categorical features
+ohe_col = [col for col in all_col if col not in num_col] #getting list of one-hot enoding columns - categorical features
 #loop to get list of remainder columns after excluding ohe columns:
 # for a in all_col:
 #   if a in ohe_col:
