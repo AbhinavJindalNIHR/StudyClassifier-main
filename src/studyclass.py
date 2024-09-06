@@ -14,7 +14,7 @@ s="SELECT IC.ICDBlock, SS.StudyLeadAdmin_NIHRDev, SS.StudyLeadAdmin, SS.StudyLea
 studyICDMAP = pd.read_sql(s, connection)
 #clean data
 #subset data
-pd_df=studyICDMAP[['ICDBlock','StudyLeadAdmin_NIHRDev','StudyLeadAdmin','StudyLeadAdminOrDivision','StudyLeadAdminComm','StudyManagingRDO','StudyManagingSpecialty','StudyLeadLCRN','StudyShortName','StudyTitle','StudyPriorityPandemic','StudyPortfolioEligibility','StudyGovernanceRoute','StudyManagingSpecialty_PrimarySubSpecialty','StudySubSpecialties_Concatenated','StudyHRCSHealthCategories_Concatenated','StudyRandomisationStatus','StudyDesignType','StudyIntervention','StudyDesignTypeIntOb','StudyInterventionDetail_Concatenated','StudyPhases_Concatenated','StudySettings_Concatenated','StudyGeographicalScope','StudyCommercialInvolvement','StudyCTU','StudySampleSizeUK','StudySampleSizeGlobal','StudySampleSizeNI','StudyManagingRDOShort','StudySampleSizeWales','StudySampleSizeEngland','StudyHasScreeningElement','StudyShouldUploadRecruitmentData','StudyMainFunder','StudyHasMainFunder','StudyFunders_Concatenated','StudySponsor','StudySponsorType','StudyCROthenSponsor','StudyInclusionCriteria','StudyExclusionCriteria','StudyResearchSummary','StudyCommercialContributionDetail_Concatenated','StudyConsumerInvolvement','StudyConsumerInvolvementDetail','Study_IsUrgentPublicHealthResearch','Study_IsExperimentalMedicineComponent','Study_IsCommercial','Study_IsCTU','StudyCountDraftAndLive','Study_IsPostApril2010','Study_IsInPublicSearch','Study_IsHRCSICDReviewed','StudyComplexityCategory','StudyCommercialOrCollaborative','StudyCommercialStudy','Study_IsOpen','Study_IsClosed','StudyCount','StudyResearchCategory','StudyCommercialStudyType','StudyFeasibilityStatus','StudyMDSComplete','Study_IsJDRStudy','StudySampleSizeScotland','Study_IsDraft','Study_IsCROStudy','StudyResearchAssessment','StudyObservationalDetail_Concatenated','StudyComplexityCategoryExtra','StudyPriority','Study_IsNonNHS','StudyICDCodingRequired','StudyComplexityCategoryWeighting','StudyLeadLCRNAcronym','StudyLeadLCRNMedium','StudyComplexityCategoryLargeOther','StudyUpperAgeLimit','StudyLowerAgeLimit','Study_PandemicStatusConfirmed','Study_IsManagedRecovery','Study_IsCOVID','Study_DoesStudyRecordParticipantAge']]
+pd_df=studyICDMAP[['ICDBlock','StudyLeadAdmin_NIHRDev','StudyLeadAdmin','StudyLeadAdminOrDivision','StudyLeadAdminComm','StudyManagingSpecialty','StudyLeadLCRN','StudyShortName','StudyTitle','StudyPriorityPandemic','StudyPortfolioEligibility','StudyGovernanceRoute','StudyManagingSpecialty_PrimarySubSpecialty','StudySubSpecialties_Concatenated','StudyHRCSHealthCategories_Concatenated','StudyRandomisationStatus','StudyDesignType','StudyIntervention','StudyDesignTypeIntOb','StudyInterventionDetail_Concatenated','StudyPhases_Concatenated','StudySettings_Concatenated','StudyGeographicalScope','StudyCommercialInvolvement','StudyCTU','StudySampleSizeUK','StudySampleSizeGlobal','StudySampleSizeNI','StudyManagingRDOShort','StudySampleSizeWales','StudySampleSizeEngland','StudyHasScreeningElement','StudyShouldUploadRecruitmentData','StudyMainFunder','StudyHasMainFunder','StudyFunders_Concatenated','StudySponsor','StudySponsorType','StudyCROthenSponsor','StudyInclusionCriteria','StudyExclusionCriteria','StudyResearchSummary','StudyCommercialContributionDetail_Concatenated','StudyConsumerInvolvement','StudyConsumerInvolvementDetail','Study_IsUrgentPublicHealthResearch','Study_IsExperimentalMedicineComponent','Study_IsCommercial','Study_IsCTU','StudyCountDraftAndLive','Study_IsPostApril2010','Study_IsInPublicSearch','Study_IsHRCSICDReviewed','StudyComplexityCategory','StudyCommercialOrCollaborative','StudyCommercialStudy','Study_IsOpen','Study_IsClosed','StudyCount','StudyResearchCategory','StudyCommercialStudyType','StudyFeasibilityStatus','StudyMDSComplete','Study_IsJDRStudy','StudySampleSizeScotland','Study_IsDraft','Study_IsCROStudy','StudyResearchAssessment','StudyObservationalDetail_Concatenated','StudyComplexityCategoryExtra','StudyPriority','Study_IsNonNHS','StudyICDCodingRequired','StudyComplexityCategoryWeighting','StudyLeadLCRNAcronym','StudyLeadLCRNMedium','StudyComplexityCategoryLargeOther','StudyUpperAgeLimit','StudyLowerAgeLimit','Study_PandemicStatusConfirmed','Study_IsManagedRecovery','Study_IsCOVID','Study_DoesStudyRecordParticipantAge']]
 #remove text fields - also removed concatenated study specialty, and other concatenated fields, HRCS_Concatenated removed, 'StudyCTU' removed,
 #removed - 'StudyCROthenSponsor','StudyInclusionCriteria','StudyExclusionCriteria','StudyResearchSummary'
 #removed - study sponsor, 'StudyMainFunder', funders concatenated, 'StudyCommercialContributionDetail_Concatenated'
@@ -37,18 +37,19 @@ ohe_col = [col for col in all_col if col not in num_col] #getting list of one-ho
 # for a in all_col:
 #   if a in ohe_col:
 #     num_col.remove(a)
-X_ohe = X.drop(columns = ohe_col,inplace=False) #dataset for one-hot encoding transformation
-X_num = X.drop(columns = num_col,inplace=False) #dataset for with numerical columns 
+# X_ohe = X.drop(columns = ohe_col,inplace=False) #dataset for one-hot encoding transformation
+# X_num = X.drop(columns = num_col,inplace=False) #dataset for with numerical columns 
 
 #one-hot encoding
-enc = preprocessing.OneHotEncoder(handle_unknown='ignore')
+enc = preprocessing.OneHotEncoder(handle_unknown='ignore',sparse_output = False, drop = "if_binary" )
 
 # 2. FIT
-enc.fit(X_ohe)
+X_encoded = enc.fit(X[ohe_col])
 
 # 3. Transform
-onehotlabels = enc.transform(X_ohe).toarray()
-onehotlabels.shape
+#onehotlabels = enc.transform(X[ohe_col]).toarray()
+onehotlabels = enc.transform(X[ohe_col])
+
 
 #remove NAs or blanks
 data = data.fillna(0, inplace=True)
