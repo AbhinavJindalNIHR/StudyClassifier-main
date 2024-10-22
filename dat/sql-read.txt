@@ -1,0 +1,16 @@
+'''
+    SELECT IC.ICDBlock, 
+    SS.StudyID,
+    SS.StudyShortName,
+    SS.StudyTitle,
+    SS.StudyResearchSummary,
+    SS.StudyInclusionCriteria
+    from 
+    (SELECT * 
+    FROM [CPMS_BI].dbo.[ODP_Study] WHERE StudyICDCodingRequired='Yes') AS SS 
+    LEFT JOIN 
+    (SELECT * from [CPMS_BI].[dbo].[ODP_StudyICD] 
+    where ICDBlock = 'Other forms of heart disease'
+    AND Study_IsCommercial = 1) 
+    AS IC ON SS.StudyID = IC.StudyID
+    '''
